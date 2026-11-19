@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vancomycin : Normal renal function - Dose Me Rx guidance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+    .matrix-table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .matrix-table th,
+    .matrix-table td {
+      border: 1.5px solid #cbd5e1;
+      transition: all 0.2s ease;
+    }
+    .dimmed-cell {
+      opacity: 0.35;
+      filter: grayscale(60%);
+    }
+    .active-cell {
+      background-color: #eff6ff !important;
+      box-shadow: inset 0 0 0 2px #2563eb;
+    }
+    .active-header {
+      background-color: #1d4ed8 !important;
+      color: #ffffff !important;
+      box-shadow: inset 0 0 0 2px #93c5fd;
+    }
+    @media print {
+      @page {
+        size: landscape;
+        margin: 0.35in;
+      }
+      body {
+        background: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .dimmed-cell {
+        opacity: 1 !important;
+        filter: none !important;
+      }
+      #print-container {
+        box-shadow: none !important;
+        border: none !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body class="p-4 md:p-6">
+
+  <!-- Interactive Control Toolbar (Hidden on Print) -->
+  <div class="no-print max-w-7xl mx-auto mb-5 bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-3 mb-3">
+      <div>
+        <span class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200">
+          Interactive Clinical Reference &amp; Calculator
+        </span>
+        <p class="text-xs text-slate-500 mt-1">
+          Enter patient parameters to auto-calculate BMI &amp; loading dose directly inside Step 2, or click a cohort button/column header to highlight a pathway.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="resetPatient()" class="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-300 transition">
+          Reset Patient
+        </button>
+        <button onclick="handlePrintOrSave()" class="px-3.5 py-1.5 text-xs font-semibold text-white bg-slate-800 hover:bg-slate-900 rounded-lg shadow-sm transition flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+          Print / Save PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Patient Auto-Router & Anthropometrics -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end mb-4">
+      <div class="md:col-span-3">
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Actual Body Weight (kg)</label>
+        <input id="weightInput" type="number" min="25" max="300" step="0.1" placeholder="e.g., 95" oninput="recalculatePatient()" class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+      </div>
+
+      <div class="md:col-span-3">
+        <div class="flex items-center justify-between mb-1">
+          <label class="text-xs font-semibold text-slate-700">Height</label>
+          <div class="inline-flex rounded-md border border-slate-300 overflow-hidden text-[11px] font-semibold">
+            <button type="button" id="unitCmBtn" onclick="setHeightUnit('cm')" class="px-2 py-0.5 bg-blue-600 text-white">cm</button>
+            <button type="button" id="unitInBtn" onclick="setHeightUnit('in')" class="px-2 py-0.5 bg-slate-100 text-slate-600 hover:bg-slate-200">in</button>
+          </div>
+        </div>
+        <input id="heightInput" type="number" min="40" max="250" step="0.1" placeholder="e.g., 175" oninput="recalculatePatient()" class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+      </div>
+
+      <div class="md:col-span-3">
+        <label class="block text-xs font-semibold text-slate-700 mb-1">BMI (kg/m²) <span id="bmiAutoBadge" class="hidden text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 ml-1">Auto</span></label>
+        <input id="bmiInput" type="number" min="12" max="90" step="0.1" placeholder="Auto or enter BMI" oninput="manualBmiOverride()" class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+      </div>
+
+      <div class="md:col-span-3">
+        <label class="flex items-center gap-2 cursor-pointer bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 hover:bg-slate-100 transition">
+          <input id="unstableCheck" type="checkbox" onchange="recalculatePatient()" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" />
+          <span class="text-xs font-semibold text-slate-800">Complex / Unstable / ICU</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Manual Cohort Selection Pills -->
+    <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+      <span class="text-xs font-semibold text-slate-600 mr-1">Highlight Pathway:</span>
+      <button onclick="selectCohort(0)" id="pill-0" class="cohort-pill px-3 py-1 rounded-full text-xs font-semibold bg-blue-600 text-white shadow-sm transition">
+        Show All Columns
+      </button>
+      <button onclick="selectCohort(1)" id="pill-1" class="cohort-pill px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+        1. Complex / Unstable
+      </button>
+      <button onclick="selectCohort(2)" id="pill-2" class="cohort-pill px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+        2. Complex + Obese (BMI ≥ 30)
+      </button>
+      <button onclick="selectCohort(3)" id="pill-3" class="cohort-pill px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+        3. Obese BMI ≥ 30
+      </button>
+      <button onclick="selectCohort(4)" id="pill-4" class="cohort-pill px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+        4. All Other Patients
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Infographic Card -->
+  <div id="print-container" class="max-w-7xl mx-auto bg-white rounded-2xl shadow-md border border-slate-300 overflow-hidden">
+
+    <!-- Top Infographic Title Banner & Flow Arrows -->
+    <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white px-6 pt-5 pb-4">
+      <div class="text-center">
+        <div class="inline-block px-3 py-0.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-200 text-[11px] font-semibold tracking-wider uppercase mb-1.5">
+          Adult Pharmacokinetic Clinical Decision Matrix
+        </div>
+        <h1 class="text-xl md:text-2xl font-extrabold tracking-tight text-white">
+          Vancomycin : Normal renal function - Dose Me Rx guidance
+        </h1>
+      </div>
+
+      <!-- Directional Flow Arrows Graphic -->
+      <div class="hidden md:grid grid-cols-12 mt-3 pt-1">
+        <div class="col-span-3"></div>
+        <div class="col-span-9 grid grid-cols-4 text-center text-blue-300">
+          <div class="flex flex-col items-center">
+            <div class="h-3 w-0.5 bg-blue-400/60"></div>
+            <span class="text-xs leading-none">▼</span>
+          </div>
+          <div class="flex flex-col items-center">
+            <div class="h-3 w-0.5 bg-blue-400/60"></div>
+            <span class="text-xs leading-none">▼</span>
+          </div>
+          <div class="flex flex-col items-center">
+            <div class="h-3 w-0.5 bg-blue-400/60"></div>
+            <span class="text-xs leading-none">▼</span>
+          </div>
+          <div class="flex flex-col items-center">
+            <div class="h-3 w-0.5 bg-blue-400/60"></div>
+            <span class="text-xs leading-none">▼</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8-Step Verbatim Comparison Matrix -->
+    <div class="overflow-x-auto">
+      <table class="matrix-table text-sm">
+        <thead>
+          <tr class="bg-slate-800 text-white text-left">
+            <th class="w-[22%] p-3.5 font-bold text-xs uppercase tracking-wider bg-slate-900 text-slate-200">
+              Workflow Step
+            </th>
+            <th id="hdr-1" onclick="selectCohort(1)" class="w-[19.5%] p-3.5 font-bold text-center cursor-pointer hover:bg-blue-800 transition">
+              <div class="text-[11px] uppercase tracking-wider text-blue-200 font-semibold mb-0.5">Category 1</div>
+              <div>Complex / or clinically unstable</div>
+            </th>
+            <th id="hdr-2" onclick="selectCohort(2)" class="w-[19.5%] p-3.5 font-bold text-center cursor-pointer hover:bg-blue-800 transition">
+              <div class="text-[11px] uppercase tracking-wider text-blue-200 font-semibold mb-0.5">Category 2</div>
+              <div>Complex / or clinically unstable + BMI ≥ 30</div>
+            </th>
+            <th id="hdr-3" onclick="selectCohort(3)" class="w-[19.5%] p-3.5 font-bold text-center cursor-pointer hover:bg-blue-800 transition">
+              <div class="text-[11px] uppercase tracking-wider text-blue-200 font-semibold mb-0.5">Category 3</div>
+              <div>Obese BMI ≥ 30</div>
+            </th>
+            <th id="hdr-4" onclick="selectCohort(4)" class="w-[19.5%] p-3.5 font-bold text-center cursor-pointer hover:bg-blue-800 transition">
+              <div class="text-[11px] uppercase tracking-wider text-blue-200 font-semibold mb-0.5">Category 4</div>
+              <div>All other Patients</div>
+            </th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-slate-300">
+          <!-- STEP 1 -->
+          <tr class="bg-white">
+            <td class="p-3.5 font-bold text-slate-900 bg-slate-100 align-top">
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-900 text-white text-xs font-extrabold mr-1.5">1</span>
+              Demographic / Clinical criteria
+            </td>
+            <td data-cohorts="1" class="p-3.5 align-top">
+              <div class="font-semibold text-slate-900 mb-1">Complex / or clinically unstable</div>
+              <div class="text-slate-700 text-xs font-medium bg-amber-50 border border-amber-200 rounded-md px-2.5 py-1.5">
+                • Fluid overload - Sepsis - Amputees or on vasopressors
+              </div>
+            </td>
+            <td data-cohorts="2" class="p-3.5 align-top">
+              <div class="font-semibold text-slate-900">Complex / or clinically unstable + BMI ≥ 30</div>
+            </td>
+            <td data-cohorts="3" class="p-3.5 align-top">
+              <div class="font-semibold text-slate-900">Obese BMI ≥ 30</div>
+            </td>
+            <td data-cohorts="4" class="p-3.5 align-top">
+              <div class="font-semibold text-slate-900">All other Patients</div>
+            </td>
+          </tr>
+
+          <!-- STEP 2 (Includes Inline Dynamic Dose Calculation) -->
+          <tr class="bg-slate-50/70">
+            <td class="p-3.5 font-bold text-slate-900 bg-slate-100 align-top">
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-900 text-white text-xs font-extrabold mr-1.5">2</span>
+              Loading dose (if indicated)
+            </td>
+            <td data-cohorts="1" class="p-3.5 text-center align-middle">
+              <span class="inline-block font-bold text-blue-950 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg">
+                ≈ 25 mg/kg standard
+              </span>
+              <div id="inline-dose-1" class="hidden mt-2"></div>
+            </td>
+            <td data-cohorts="2,3" colspan="2" class="p-3.5 text-center align-middle bg-sky-50/40">
+              <span class="inline-block font-bold text-sky-950 bg-sky-100/80 border border-sky-300 px-4 py-1.5 rounded-lg">
+                ≈ 20-25 mg/kg modified loading dose
+              </span>
+              <div id="inline-dose-23" class="hidden mt-2"></div>
+            </td>
+            <td data-cohorts="4" class="p-3.5 text-center align-middle">
+              <span class="inline-block font-bold text-blue-950 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg">
+                ≈ 25 mg/kg
+              </span>
+              <div id="inline-dose-4" class="hidden mt-2"></div>
+            </td>
+          </tr>
+
+          <!-- STEP 3 -->
+          <tr class="bg-white">
+            <td class="p-3.5 font-bold text-slate-900 bg-slate-100 align-top">
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-900 text-white text-xs font-extrabold mr-1.5">3</span>
+              Dose Me Rx model (Population)
+            </td>
+            <td data-cohorts="1" class="p-3.5 text-center align-middle font-bold text-indigo-950">
+              <span class="inline-block bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg">
+                2 compartment
+              </span>
+            </td>
+            <td data-cohorts="2,3" colspan="2" class="p-3.5 text-center align-middle font-bold text-teal-950 bg-teal-50/40">
+              <span class="inline-block bg-teal-100/80 border border-teal-300 px-4 py-1.5 rounded-lg">
+                Enhanced obese adult
+              </span>
+            </td>
+            <td data-cohorts="4" class="p-3.5 text-center align-middle font-bold text-slate-900">
+              <span class="inline-block bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-lg">
+                1 compartment
+              </span>
+            </td>
+          </tr>
+
+          <!-- STEP 4 -->
+          <tr class="bg-slate-50/70">
+            <td class="p-3.5 font-bold text-slate-900 bg-slate-100 align-top">
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-900 text-white text-xs font-extrabold mr-1.5">4</span>
+              Update course variables Indication (severity)
+            </td>
+            <td data-cohorts="1" class="p-3.5 text-center align-middle font-semibold text-rose-900">
+              <span class="inline-block bg-rose-50 border border-rose-200 px-3 py-1 rounded-md">
+                Severe infection
+              </span>
+            </td>
+            <td data-cohorts="2" class="p-3.5 text-center align-middle font-semibold text-rose-900">
+              <span class="inline-block bg-rose-50 border border-rose-200 px-3 py-1 rounded-md">
+                Severe infection
+              </span>
+            </td>
+            <td data-cohorts="3" class="p-3.5 text-center align-middle font-semibold text-emerald-900">
+              <span class="inline-block bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-md">
+                Non-severe infection
+              </span>
+            </td>
+            <td data-cohorts="4" class="p-3.5 text-center align-middle font-semibold text-emerald-900">
+              <span class="inline-block bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-md">
+                Non-severe infection
+              </span>
+            </td>
+          </tr>
+
+          <!-- STEP 5 -->
+          <tr class="bg-white">
+            <td class="p-3.5 font-bold text-slate-900 bg-slate-100 align-top">
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-900 text-white text-xs font-extrabold mr-1.5">5</span>
+              Initial labs After 1st maintenance dose
+            </td>
+            <td data-cohorts="1,2" colspan="2" class="p-3.5 align-middle bg-amber-50/40">
+              <ul class="space-y-1 font-medium text-slate-900">
+                <li>• <span class="font-bold text-amber-950">Peak :</span> 1-2 hrs after END of infusion</li>
+                <li>• <span class="font-bold text-amber-950">Trough :</span> 30 mins prior to next scheduled dose</li>
+              </ul>
+            </td>
+            <td data-cohorts="3,4" colspan="2" class="p-3.5 align-middle bg-blue-50/30">
+              <div class="font-medium text-slate-900 text-center">
+                Random level with AM labs (at least 2 hrs after END of infusion) or timed lab otherwise
+              </div>
+            </td>
+          </tr>
+
+          <!-- STEP 6 -->
+          <tr class="bg-slate-50/70">
+            <td class="p-3.5 font-bold text-slate-900 bg-slate-100 align-top">
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-900 text-white text-xs font-extrabold mr-1.5">6</span>
+              Non-Therapeutic level
+            </td>
+            <td data-cohorts="1,2,3,4" colspan="4" class="p-3.5 align-middle">
+              <ul class="space-y-1 font-medium text-slate-900">
+                <li>- Adjust per Dose Me Rx - individualized or custom dose</li>
+                <li>- Random level with AM labs (at least 2 hrs after END of infusion), or timed lab otherwise until therapeutic</li>
+              </ul>
+            </td>
+          </tr>
+
+          <!-- STEP 7 -->
+          <tr class="bg-white">
+            <td class="p-3.5 font-bold text-slate-900 bg-slate-100 align-top">
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-900 text-white text-xs font-extrabold mr-1.5">7</span>
+              After 1st therapeutic level
+            </td>
+            <td data-cohorts="1,2,3,4" colspan="4" class="p-3.5 align-middle font-medium text-slate-900">
+              Random levels with AM labs (at least 2 hrs after END of infusion), or timed lab otherwise at steady state
+            </td>
+          </tr>
+
+          <!-- STEP 8 -->
+          <tr class="bg-slate-50/70">
+            <td class="p-3.5 font-bold text-slate-900 bg-slate-100 align-top">
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-900 text-white text-xs font-extrabold mr-1.5">8</span>
+              lab at steady state
+            </td>
+            <td data-cohorts="1,2,3,4" colspan="4" class="p-3.5 align-middle">
+              <div class="space-y-1 font-medium text-slate-900">
+                <div><span class="font-bold text-rose-900">a) Non-therapeutic :</span> repeat starting from step 6</div>
+                <div><span class="font-bold text-emerald-900">b) Therapeutic :</span> weekly monitoring with AM labs unless there is significant change in renal function.</div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let activeCohort = 0;
+    let heightUnit = 'cm';
+    let manualBmi = false;
+
+    function roundTo250(val) {
+      return Math.round(val / 250) * 250;
+    }
+
+    function getInfusionDuration(doseMg) {
+      if (doseMg <= 1000) return "60 min (1 hr)";
+      if (doseMg <= 1500) return "90 min (1.5 hrs)";
+      if (doseMg <= 2000) return "120 min (2 hrs)";
+      if (doseMg <= 2500) return "150 min (2.5 hrs)";
+      return "180 min (3 hrs)";
+    }
+
+    function setHeightUnit(unit) {
+      heightUnit = unit;
+      const cmBtn = document.getElementById('unitCmBtn');
+      const inBtn = document.getElementById('unitInBtn');
+      const heightInput = document.getElementById('heightInput');
+
+      if (unit === 'cm') {
+        cmBtn.className = "px-2 py-0.5 bg-blue-600 text-white";
+        inBtn.className = "px-2 py-0.5 bg-slate-100 text-slate-600 hover:bg-slate-200";
+        heightInput.placeholder = "e.g., 175";
+      } else {
+        inBtn.className = "px-2 py-0.5 bg-blue-600 text-white";
+        cmBtn.className = "px-2 py-0.5 bg-slate-100 text-slate-600 hover:bg-slate-200";
+        heightInput.placeholder = "e.g., 69";
+      }
+      manualBmi = false;
+      recalculatePatient();
+    }
+
+    function manualBmiOverride() {
+      manualBmi = true;
+      document.getElementById('bmiAutoBadge').classList.add('hidden');
+      recalculatePatient();
+    }
+
+    function selectCohort(cohortId) {
+      activeCohort = cohortId;
+
+      document.querySelectorAll('.cohort-pill').forEach(btn => {
+        btn.className = "cohort-pill px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
+      });
+      const activePill = document.getElementById(`pill-${cohortId}`);
+      if (activePill) {
+        activePill.className = "cohort-pill px-3 py-1 rounded-full text-xs font-semibold bg-blue-600 text-white shadow-sm transition";
+      }
+
+      for (let i = 1; i <= 4; i++) {
+        const hdr = document.getElementById(`hdr-${i}`);
+        if (cohortId === 0) {
+          hdr.classList.remove('active-header', 'dimmed-cell');
+        } else if (i === cohortId) {
+          hdr.classList.add('active-header');
+          hdr.classList.remove('dimmed-cell');
+        } else {
+          hdr.classList.remove('active-header');
+          hdr.classList.add('dimmed-cell');
+        }
+      }
+
+      document.querySelectorAll('td[data-cohorts]').forEach(cell => {
+        const cohorts = cell.getAttribute('data-cohorts').split(',').map(Number);
+        if (cohortId === 0) {
+          cell.classList.remove('active-cell', 'dimmed-cell');
+        } else if (cohorts.includes(cohortId)) {
+          cell.classList.add('active-cell');
+          cell.classList.remove('dimmed-cell');
+        } else {
+          cell.classList.remove('active-cell');
+          cell.classList.add('dimmed-cell');
+        }
+      });
+
+      renderInlineLoadingDoses();
+    }
+
+    function renderInlineLoadingDoses() {
+      const wt = parseFloat(document.getElementById('weightInput').value);
+      const box1 = document.getElementById('inline-dose-1');
+      const box23 = document.getElementById('inline-dose-23');
+      const box4 = document.getElementById('inline-dose-4');
+
+      if (!wt || wt <= 0) {
+        box1.classList.add('hidden');
+        box23.classList.add('hidden');
+        box4.classList.add('hidden');
+        return;
+      }
+
+      // Standard Load (~25 mg/kg, capped at 3,000 mg)
+      const stdRaw = wt * 25;
+      const stdRounded = Math.min(3000, Math.max(500, roundTo250(stdRaw)));
+      const stdActualMgKg = (stdRounded / wt).toFixed(1);
+      const stdInf = getInfusionDuration(stdRounded);
+
+      // Modified Obese Load (~20-25 mg/kg, capped at 3,000 mg)
+      const modLow = roundTo250(wt * 20);
+      const modHigh = roundTo250(wt * 25);
+      const modRec = Math.min(3000, Math.max(500, roundTo250(wt * 22.5)));
+      const modActualMgKg = (modRec / wt).toFixed(1);
+      const modInf = getInfusionDuration(modRec);
+
+      const stdHtml = `
+        <div class="inline-block text-left bg-blue-600 text-white rounded-lg px-3 py-2 shadow-sm border border-blue-700">
+          <div class="text-[10px] uppercase tracking-wider font-semibold text-blue-100">Calculated Dose (${wt} kg)</div>
+          <div class="text-base font-extrabold leading-tight">${stdRounded.toLocaleString()} mg × 1 <span class="text-xs font-normal text-blue-100">(${stdActualMgKg} mg/kg)</span></div>
+          <div class="text-[11px] text-blue-100 mt-0.5">Infuse over ≥ <strong>${stdInf}</strong></div>
+        </div>
+      `;
+
+      const modHtml = `
+        <div class="inline-block text-left bg-sky-700 text-white rounded-lg px-3 py-2 shadow-sm border border-sky-800">
+          <div class="text-[10px] uppercase tracking-wider font-semibold text-sky-100">Calculated Modified Dose (${wt} kg)</div>
+          <div class="text-base font-extrabold leading-tight">${modRec.toLocaleString()} mg × 1 <span class="text-xs font-normal text-sky-100">(${modActualMgKg} mg/kg; range ${Math.min(3000, modLow).toLocaleString()}–${Math.min(3000, modHigh).toLocaleString()} mg)</span></div>
+          <div class="text-[11px] text-sky-100 mt-0.5">Infuse over ≥ <strong>${modInf}</strong></div>
+        </div>
+      `;
+
+      if (activeCohort === 0) {
+        box1.innerHTML = stdHtml;
+        box23.innerHTML = modHtml;
+        box4.innerHTML = stdHtml;
+        box1.classList.remove('hidden');
+        box23.classList.remove('hidden');
+        box4.classList.remove('hidden');
+      } else if (activeCohort === 1) {
+        box1.innerHTML = stdHtml;
+        box1.classList.remove('hidden');
+        box23.classList.add('hidden');
+        box4.classList.add('hidden');
+      } else if (activeCohort === 2 || activeCohort === 3) {
+        box23.innerHTML = modHtml;
+        box23.classList.remove('hidden');
+        box1.classList.add('hidden');
+        box4.classList.add('hidden');
+      } else if (activeCohort === 4) {
+        box4.innerHTML = stdHtml;
+        box4.classList.remove('hidden');
+        box1.classList.add('hidden');
+        box23.classList.add('hidden');
+      }
+    }
+
+    function recalculatePatient() {
+      const wt = parseFloat(document.getElementById('weightInput').value);
+      const ht = parseFloat(document.getElementById('heightInput').value);
+      const bmiField = document.getElementById('bmiInput');
+      const autoBadge = document.getElementById('bmiAutoBadge');
+      const unstable = document.getElementById('unstableCheck').checked;
+
+      // Auto-calculate BMI if weight and height are provided
+      if (wt > 0 && ht > 0 && !manualBmi) {
+        const heightMeters = heightUnit === 'cm' ? (ht / 100) : (ht * 0.0254);
+        if (heightMeters > 0) {
+          const calcBmi = wt / (heightMeters * heightMeters);
+          bmiField.value = calcBmi.toFixed(1);
+          autoBadge.classList.remove('hidden');
+        }
+      } else if ((!wt || !ht) && !manualBmi) {
+        bmiField.value = '';
+        autoBadge.classList.add('hidden');
+      }
+
+      const bmi = parseFloat(bmiField.value);
+
+      // Auto-route cohort
+      if (!isNaN(bmi) || unstable) {
+        const isObese = !isNaN(bmi) && bmi >= 30;
+        if (unstable && isObese) selectCohort(2);
+        else if (unstable && !isObese) selectCohort(1);
+        else if (!unstable && isObese) selectCohort(3);
+        else selectCohort(4);
+      } else {
+        selectCohort(0);
+      }
+    }
+
+    function resetPatient() {
+      document.getElementById('weightInput').value = '';
+      document.getElementById('heightInput').value = '';
+      document.getElementById('bmiInput').value = '';
+      document.getElementById('unstableCheck').checked = false;
+      document.getElementById('bmiAutoBadge').classList.add('hidden');
+      manualBmi = false;
+      selectCohort(0);
+    }
+
+    function handlePrintOrSave() {
+      const printContent = document.getElementById('print-container').outerHTML;
+      const printWin = window.open('', '_blank', 'width=1200,height=850');
+
+      if (!printWin) {
+        alert("Popup blocked by browser. Please allow popups to open the print preview.");
+        return;
+      }
+
+      printWin.document.open();
+      printWin.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vancomycin : Normal renal function - Dose Me Rx guidance</title>
+  <script src="https://cdn.tailwindcss.com"><\/script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #ffffff;
+      color: #0f172a;
+      margin: 0;
+      padding: 16px;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .matrix-table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .matrix-table th,
+    .matrix-table td {
+      border: 1.5px solid #cbd5e1;
+    }
+    .dimmed-cell {
+      opacity: 1 !important;
+      filter: none !important;
+    }
+    #print-container {
+      box-shadow: none !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+    }
+    @page {
+      size: landscape;
+      margin: 0.35in;
+    }
+  </style>
+</head>
+<body>
+  ${printContent}
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.focus();
+        window.print();
+      }, 600);
+    };
+  <\/script>
+</body>
+</html>`);
+      printWin.document.close();
+    }
+  </script>
+</body>
+</html>
