@@ -930,11 +930,11 @@
           actionBanner = "Active Workflow: Daily Monitoring (No New Level) — Continue current regimen and verify scheduled initial or steady-state lab timing.";
         } else if (labStage === 'after_1st_maint') {
           if (labStatus === 'therapeutic') {
-            activeSteps = [5, 7];
-            actionBanner = "Active Workflow: Step 5 → Step 7 — Level after 1st maintenance dose is THERAPEUTIC (AUC₂₄ 400–600). Continue current regimen and obtain a random level with AM labs at steady state.";
+            activeSteps = [7];
+            actionBanner = "Active Workflow: Step 7 — Level after 1st maintenance dose is THERAPEUTIC (AUC₂₄ 400–600). Continue current regimen and obtain a random level with AM labs at steady state.";
           } else {
-            activeSteps = [5, 6];
-            actionBanner = "Active Workflow: Step 5 → Step 6 — Level after 1st maintenance dose is NON-THERAPEUTIC. Adjust dose/interval per DoseMeRx (individualized/custom) and check random level with AM labs until therapeutic.";
+            activeSteps = [6];
+            actionBanner = "Active Workflow: Step 6 — Level after 1st maintenance dose is NON-THERAPEUTIC. Adjust dose/interval per DoseMeRx (individualized/custom) and check random level with AM labs until therapeutic.";
           }
         } else if (labStage === 'after_adjustment') {
           if (labStatus === 'therapeutic') {
@@ -994,25 +994,25 @@
           name: "Complex / Clinically Unstable",
           model: "2-compartment",
           isObese: false,
-          initialLabPlan: "Will check vancomycin peak (1-2 hrs after END of infusion) and trough (30 mins prior to next scheduled dose) following the 1st maintenance dose, or sooner if renal function changes significantly."
+          initialLabPlan: "Following the 1st maintenance dose, will check vancomycin peak (1-2 hrs after END of infusion) and trough (30 mins prior to next scheduled dose), or sooner if renal function changes significantly."
         },
         2: {
           name: "Complex / Clinically Unstable + Obese (BMI ≥ 30)",
           model: "Enhanced obese adult",
           isObese: true,
-          initialLabPlan: "Will check vancomycin peak (1-2 hrs after END of infusion) and trough (30 mins prior to next scheduled dose) following the 1st maintenance dose, or sooner if renal function changes significantly."
+          initialLabPlan: "Following the 1st maintenance dose, will check vancomycin peak (1-2 hrs after END of infusion) and trough (30 mins prior to next scheduled dose), or sooner if renal function changes significantly."
         },
         3: {
           name: "Obese (BMI ≥ 30)",
           model: "Enhanced obese adult",
           isObese: true,
-          initialLabPlan: "Will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion) following the 1st maintenance dose, or sooner if renal function changes significantly."
+          initialLabPlan: "Following the 1st maintenance dose, will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion), or sooner if renal function changes significantly."
         },
         4: {
           name: "Standard Adult (All Other Patients)",
           model: "1-compartment",
           isObese: false,
-          initialLabPlan: "Will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion) following the 1st maintenance dose, or sooner if renal function changes significantly."
+          initialLabPlan: "Following the 1st maintenance dose, will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion), or sooner if renal function changes significantly."
         }
       };
 
@@ -1084,32 +1084,32 @@
         } else if (labStage === 'after_1st_maint') {
           if (labStatus === 'therapeutic') {
             summaryEl.textContent = "Step 5 → Step 7: Initial lab after 1st maintenance dose is THERAPEUTIC";
-            planLine1 = `1. Vancomycin level obtained after 1st maintenance dose is appropriate${labContextNote}. Continue current vancomycin regimen (${doseVal} mg every ${freqVal} hours). Will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion) at steady state.`;
+            planLine1 = `1. Vancomycin level obtained after 1st maintenance dose is appropriate${labContextNote}. Continue current vancomycin regimen (${doseVal} mg every ${freqVal} hours). At steady state, will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion).`;
           } else {
             summaryEl.textContent = "Step 5 → Step 6: Initial lab after 1st maintenance dose is NON-THERAPEUTIC";
             const dirPhrase = dirVal === 'above' ? "Above goal range" : "Below goal range";
             currentRegimenLine = `Adjusted regimen per DoseMeRx: vancomycin ${doseVal} mg every ${freqVal} hours.`;
-            planLine1 = `1. ${dirPhrase}${labContextNote}. Adjusted per DoseMeRx (individualized/custom dosing) — orders placed for new vancomycin regimen of ${doseVal} mg every ${freqVal} hours. Will repeat a random vancomycin level with AM labs (at least 2 hrs after END of infusion) until therapeutic.`;
+            planLine1 = `1. ${dirPhrase}${labContextNote}. Adjusted per DoseMeRx (individualized/custom dosing) — orders placed for new vancomycin regimen of ${doseVal} mg every ${freqVal} hours. Following the new regimen, will repeat a random vancomycin level with AM labs (at least 2 hrs after END of infusion) until therapeutic.`;
           }
         } else if (labStage === 'after_adjustment') {
           if (labStatus === 'therapeutic') {
             summaryEl.textContent = "Step 6 → Step 7: Repeat level after dose adjustment is THERAPEUTIC";
-            planLine1 = `1. Repeat vancomycin level obtained is appropriate${labContextNote}. Continue current vancomycin regimen (${doseVal} mg every ${freqVal} hours). Will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion) at steady state.`;
+            planLine1 = `1. Repeat vancomycin level obtained is appropriate${labContextNote}. Continue current vancomycin regimen (${doseVal} mg every ${freqVal} hours). At steady state, will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion).`;
           } else {
             summaryEl.textContent = "Step 6: Repeat level remains NON-THERAPEUTIC";
             const dirPhrase = dirVal === 'above' ? "Above goal range" : "Below goal range";
             currentRegimenLine = `Adjusted regimen per DoseMeRx: vancomycin ${doseVal} mg every ${freqVal} hours.`;
-            planLine1 = `1. ${dirPhrase}${labContextNote}. Re-adjusted per DoseMeRx — orders placed for new vancomycin regimen of ${doseVal} mg every ${freqVal} hours. Will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion) until therapeutic.`;
+            planLine1 = `1. ${dirPhrase}${labContextNote}. Re-adjusted per DoseMeRx — orders placed for new vancomycin regimen of ${doseVal} mg every ${freqVal} hours. Following the new regimen, will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion) until therapeutic.`;
           }
         } else if (labStage === 'steady_state') {
           if (labStatus === 'therapeutic') {
             summaryEl.textContent = "Step 8b: Steady-state level is THERAPEUTIC (Weekly AM monitoring)";
-            planLine1 = `1. Steady-state vancomycin level obtained is appropriate${labContextNote}. Continue current vancomycin regimen (${doseVal} mg every ${freqVal} hours). Will monitor weekly with AM labs unless there is a significant change in renal function.`;
+            planLine1 = `1. Steady-state vancomycin level obtained is appropriate${labContextNote}. Continue current vancomycin regimen (${doseVal} mg every ${freqVal} hours). Weekly with AM labs, will monitor a random vancomycin level unless there is a significant change in renal function.`;
           } else {
             summaryEl.textContent = "Step 8a → Step 6: Steady-state level is NON-THERAPEUTIC";
             const dirPhrase = dirVal === 'above' ? "Above goal range" : "Below goal range";
             currentRegimenLine = `Adjusted regimen per DoseMeRx: vancomycin ${doseVal} mg every ${freqVal} hours.`;
-            planLine1 = `1. Steady-state level ${dirPhrase.toLowerCase()}${labContextNote}. Adjusted per DoseMeRx — orders placed for new vancomycin regimen of ${doseVal} mg every ${freqVal} hours. Will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion) until therapeutic.`;
+            planLine1 = `1. Steady-state level ${dirPhrase.toLowerCase()}${labContextNote}. Adjusted per DoseMeRx — orders placed for new vancomycin regimen of ${doseVal} mg every ${freqVal} hours. Following the new regimen, will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion) until therapeutic.`;
           }
         }
 
