@@ -275,7 +275,7 @@
       <div id="fuExtraDetails" class="hidden mt-2.5 pt-2.5 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
         <div class="sm:col-span-4 flex items-center gap-2">
           <label class="text-[11px] font-semibold text-slate-600 whitespace-nowrap">DoseMeRx AUC₂₄:</label>
-          <input id="aucValueInput" type="number" placeholder="e.g., 485" oninput="updateWorkflowAndIvent()" class="w-24 px-2 py-1 text-xs bg-white border border-slate-300 rounded-md outline-none" />
+          <input id="aucValueInput" type="number" placeholder="e.g., 485" oninput="handleAucInput()" class="w-24 px-2 py-1 text-xs bg-white border border-slate-300 rounded-md outline-none" />
           <span class="text-[11px] text-slate-500">mg·h/L</span>
         </div>
         <div class="sm:col-span-4 flex items-center gap-2">
@@ -731,51 +731,6 @@
       recalculatePatient();
     }
 
-    function setEncounterStage(stage) {
-      encounterStage = stage;
-      const newBtn = document.getElementById('stageNewBtn');
-      const fuBtn = document.getElementById('stageFuBtn');
-      const newControls = document.getElementById('newStartControls');
-      const fuControls = document.getElementById('followUpControls');
-      const fuExtra = document.getElementById('fuExtraDetails');
-
-      if (stage === 'new') {
-        newBtn.className = "px-2.5 py-1.5 rounded-md text-xs font-bold bg-blue-600 text-white shadow-sm transition";
-        fuBtn.className = "px-2.5 py-1.5 rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-100 transition";
-        newControls.classList.remove('hidden');
-        fuControls.classList.add('hidden');
-        fuExtra.classList.add('hidden');
-      } else {
-        fuBtn.className = "px-2.5 py-1.5 rounded-md text-xs font-bold bg-blue-600 text-white shadow-sm transition";
-        newBtn.className = "px-2.5 py-1.5 rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-100 transition";
-        newControls.classList.add('hidden');
-        fuControls.classList.remove('hidden');
-        fuExtra.classList.remove('hidden');
-      }
-      updateWorkflowAndIvent();
-    }
-
-    function setLabStatus(status) {
-      labStatus = status;
-      const therBtn = document.getElementById('statusTherBtn');
-      const nonTherBtn = document.getElementById('statusNonTherBtn');
-      const dirWrap = document.getElementById('nonTherDirectionWrap');
-      const doseLabel = document.getElementById('fuDoseLabel');
-
-      if (status === 'therapeutic') {
-        therBtn.className = "px-2 py-1 rounded text-[11px] font-bold bg-emerald-600 text-white shadow-sm transition";
-        nonTherBtn.className = "px-2 py-1 rounded text-[11px] font-semibold text-slate-700 hover:bg-slate-100 transition";
-        dirWrap.classList.add('hidden');
-        doseLabel.textContent = "Current Dose";
-      } else {
-        nonTherBtn.className = "px-2 py-1 rounded text-[11px] font-bold bg-rose-600 text-white shadow-sm transition";
-        therBtn.className = "px-2 py-1 rounded text-[11px] font-semibold text-slate-700 hover:bg-slate-100 transition";
-        dirWrap.classList.remove('hidden');
-        doseLabel.textContent = "New Dose";
-      }
-      updateWorkflowAndIvent();
-    }
-
     function selectCohort(cohortId) {
       activeCohort = cohortId;
 
@@ -896,6 +851,77 @@
         box4.classList.remove('hidden');
         box1.classList.add('hidden');
         box23.classList.add('hidden');
+      }
+    }
+
+    function setEncounterStage(stage) {
+      encounterStage = stage;
+      const newBtn = document.getElementById('stageNewBtn');
+      const fuBtn = document.getElementById('stageFuBtn');
+      const newControls = document.getElementById('newStartControls');
+      const fuControls = document.getElementById('followUpControls');
+      const fuExtra = document.getElementById('fuExtraDetails');
+
+      if (stage === 'new') {
+        newBtn.className = "px-2.5 py-1.5 rounded-md text-xs font-bold bg-blue-600 text-white shadow-sm transition";
+        fuBtn.className = "px-2.5 py-1.5 rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-100 transition";
+        newControls.classList.remove('hidden');
+        fuControls.classList.add('hidden');
+        fuExtra.classList.add('hidden');
+      } else {
+        fuBtn.className = "px-2.5 py-1.5 rounded-md text-xs font-bold bg-blue-600 text-white shadow-sm transition";
+        newBtn.className = "px-2.5 py-1.5 rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-100 transition";
+        newControls.classList.add('hidden');
+        fuControls.classList.remove('hidden');
+        fuExtra.classList.remove('hidden');
+      }
+      updateWorkflowAndIvent();
+    }
+
+    function setLabStatus(status) {
+      labStatus = status;
+      const therBtn = document.getElementById('statusTherBtn');
+      const nonTherBtn = document.getElementById('statusNonTherBtn');
+      const dirWrap = document.getElementById('nonTherDirectionWrap');
+      const doseLabel = document.getElementById('fuDoseLabel');
+
+      if (status === 'therapeutic') {
+        therBtn.className = "px-2 py-1 rounded text-[11px] font-bold bg-emerald-600 text-white shadow-sm transition";
+        nonTherBtn.className = "px-2 py-1 rounded text-[11px] font-semibold text-slate-700 hover:bg-slate-100 transition";
+        dirWrap.classList.add('hidden');
+        doseLabel.textContent = "Current Dose";
+      } else {
+        nonTherBtn.className = "px-2 py-1 rounded text-[11px] font-bold bg-rose-600 text-white shadow-sm transition";
+        therBtn.className = "px-2 py-1 rounded text-[11px] font-semibold text-slate-700 hover:bg-slate-100 transition";
+        dirWrap.classList.remove('hidden');
+        doseLabel.textContent = "New Dose";
+        const aucVal = parseFloat(document.getElementById('aucValueInput').value);
+        if (isNaN(aucVal) || aucVal <= 0) {
+          document.getElementById('nonTherDirection').value = 'below';
+        }
+      }
+      updateWorkflowAndIvent();
+    }
+
+    function handleAucInput() {
+      const raw = document.getElementById('aucValueInput').value.trim();
+      const aucVal = parseFloat(raw);
+      const dirSelect = document.getElementById('nonTherDirection');
+
+      if (raw === '' || isNaN(aucVal)) {
+        dirSelect.value = 'below';
+        setLabStatus('nontherapeutic');
+        return;
+      }
+
+      if (aucVal < 400) {
+        dirSelect.value = 'below';
+        setLabStatus('nontherapeutic');
+      } else if (aucVal > 600) {
+        dirSelect.value = 'above';
+        setLabStatus('nontherapeutic');
+      } else {
+        setLabStatus('therapeutic');
       }
     }
 
@@ -1077,39 +1103,47 @@
 
         let currentRegimenLine = `Current regimen: vancomycin ${doseVal} mg every ${freqVal} hours.`;
         let planLine1 = "";
+        let planLine2Lab = "";
 
         if (labStage === 'no_new_lab') {
           summaryEl.textContent = "Daily Follow-Up — No new vancomycin level today";
-          planLine1 = `1. No new vancomycin levels today. Continue current regimen (${doseVal} mg every ${freqVal} hours) and monitor scheduled level with AM labs.`;
+          planLine1 = `1. No new vancomycin levels today. Continue current regimen (${doseVal} mg every ${freqVal} hours).`;
+          planLine2Lab = `2. With AM labs, will monitor scheduled vancomycin level per protocol.`;
         } else if (labStage === 'after_1st_maint') {
           if (labStatus === 'therapeutic') {
             summaryEl.textContent = "Step 5 → Step 7: Initial lab after 1st maintenance dose is THERAPEUTIC";
-            planLine1 = `1. Vancomycin level obtained after 1st maintenance dose is appropriate${labContextNote}. Continue current vancomycin regimen (${doseVal} mg every ${freqVal} hours). At steady state, will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion).`;
+            planLine1 = `1. Vancomycin level obtained after 1st maintenance dose is appropriate${labContextNote}. Continue current vancomycin regimen (${doseVal} mg every ${freqVal} hours).`;
+            planLine2Lab = `2. At steady state, will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion).`;
           } else {
             summaryEl.textContent = "Step 5 → Step 6: Initial lab after 1st maintenance dose is NON-THERAPEUTIC";
             const dirPhrase = dirVal === 'above' ? "Above goal range" : "Below goal range";
             currentRegimenLine = `Adjusted regimen per DoseMeRx: vancomycin ${doseVal} mg every ${freqVal} hours.`;
-            planLine1 = `1. ${dirPhrase}${labContextNote}. Adjusted per DoseMeRx (individualized/custom dosing) — orders placed for new vancomycin regimen of ${doseVal} mg every ${freqVal} hours. Following the new regimen, will repeat a random vancomycin level with AM labs (at least 2 hrs after END of infusion) until therapeutic.`;
+            planLine1 = `1. ${dirPhrase}${labContextNote}. Adjusted per DoseMeRx (individualized/custom dosing) — orders placed for new vancomycin regimen of ${doseVal} mg every ${freqVal} hours.`;
+            planLine2Lab = `2. Following the new regimen, will repeat a random vancomycin level with AM labs (at least 2 hrs after END of infusion) until therapeutic.`;
           }
         } else if (labStage === 'after_adjustment') {
           if (labStatus === 'therapeutic') {
             summaryEl.textContent = "Step 6 → Step 7: Repeat level after dose adjustment is THERAPEUTIC";
-            planLine1 = `1. Repeat vancomycin level obtained is appropriate${labContextNote}. Continue current vancomycin regimen (${doseVal} mg every ${freqVal} hours). At steady state, will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion).`;
+            planLine1 = `1. Repeat vancomycin level obtained is appropriate${labContextNote}. Continue current vancomycin regimen (${doseVal} mg every ${freqVal} hours).`;
+            planLine2Lab = `2. At steady state, will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion).`;
           } else {
             summaryEl.textContent = "Step 6: Repeat level remains NON-THERAPEUTIC";
             const dirPhrase = dirVal === 'above' ? "Above goal range" : "Below goal range";
             currentRegimenLine = `Adjusted regimen per DoseMeRx: vancomycin ${doseVal} mg every ${freqVal} hours.`;
-            planLine1 = `1. ${dirPhrase}${labContextNote}. Re-adjusted per DoseMeRx — orders placed for new vancomycin regimen of ${doseVal} mg every ${freqVal} hours. Following the new regimen, will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion) until therapeutic.`;
+            planLine1 = `1. ${dirPhrase}${labContextNote}. Re-adjusted per DoseMeRx — orders placed for new vancomycin regimen of ${doseVal} mg every ${freqVal} hours.`;
+            planLine2Lab = `2. Following the new regimen, will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion) until therapeutic.`;
           }
         } else if (labStage === 'steady_state') {
           if (labStatus === 'therapeutic') {
             summaryEl.textContent = "Step 8b: Steady-state level is THERAPEUTIC (Weekly AM monitoring)";
-            planLine1 = `1. Steady-state vancomycin level obtained is appropriate${labContextNote}. Continue current vancomycin regimen (${doseVal} mg every ${freqVal} hours). Weekly with AM labs, will monitor a random vancomycin level unless there is a significant change in renal function.`;
+            planLine1 = `1. Steady-state vancomycin level obtained is appropriate${labContextNote}. Continue current vancomycin regimen (${doseVal} mg every ${freqVal} hours).`;
+            planLine2Lab = `2. Weekly with AM labs, will monitor a random vancomycin level unless there is a significant change in renal function.`;
           } else {
             summaryEl.textContent = "Step 8a → Step 6: Steady-state level is NON-THERAPEUTIC";
             const dirPhrase = dirVal === 'above' ? "Above goal range" : "Below goal range";
             currentRegimenLine = `Adjusted regimen per DoseMeRx: vancomycin ${doseVal} mg every ${freqVal} hours.`;
-            planLine1 = `1. Steady-state level ${dirPhrase.toLowerCase()}${labContextNote}. Adjusted per DoseMeRx — orders placed for new vancomycin regimen of ${doseVal} mg every ${freqVal} hours. Following the new regimen, will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion) until therapeutic.`;
+            planLine1 = `1. Steady-state level ${dirPhrase.toLowerCase()}${labContextNote}. Adjusted per DoseMeRx — orders placed for new vancomycin regimen of ${doseVal} mg every ${freqVal} hours.`;
+            planLine2Lab = `2. Following the new regimen, will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion) until therapeutic.`;
           }
         }
 
@@ -1120,8 +1154,9 @@
           ``,
           `Plan`,
           planLine1,
-          `2. Goal: AUC 400-600 mg*h/L`,
-          `3. Follow daily, and monitor renal function, culture/sensitivity and clinical course as appropriate.`
+          planLine2Lab,
+          `3. Goal: AUC 400-600 mg*h/L`,
+          `4. Follow daily, and monitor renal function, culture/sensitivity and clinical course as appropriate.`
         ].join("\n");
 
         outputEl.value = text;
