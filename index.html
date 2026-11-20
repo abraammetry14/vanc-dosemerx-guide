@@ -34,6 +34,30 @@
       color: #ffffff !important;
       box-shadow: inset 0 0 0 2px #93c5fd;
     }
+    .step-active-row td:first-child {
+      background-color: #dbeafe !important;
+      border-left: 4px solid #1d4ed8 !important;
+      color: #1e3a8a !important;
+    }
+    .step-active-cell {
+      box-shadow: inset 0 0 0 2.5px #1d4ed8, 0 0 0 1px #93c5fd !important;
+      background-color: #eff6ff !important;
+    }
+    .step-dimmed-row {
+      opacity: 0.45;
+    }
+    .sev-box-selected-severe {
+      background-color: #ffe4e6 !important;
+      border-color: #e11d48 !important;
+      color: #881337 !important;
+      box-shadow: 0 0 0 2px #fda4af;
+    }
+    .sev-box-selected-nonsevere {
+      background-color: #d1fae5 !important;
+      border-color: #059669 !important;
+      color: #064e3b !important;
+      box-shadow: 0 0 0 2px #6ee7b7;
+    }
     @media print {
       @page {
         size: landscape;
@@ -47,7 +71,7 @@
       .no-print {
         display: none !important;
       }
-      .dimmed-cell {
+      .dimmed-cell, .step-dimmed-row {
         opacity: 1 !important;
         filter: none !important;
       }
@@ -68,16 +92,16 @@
     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-3 mb-3">
       <div>
         <span class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200">
-          Interactive Clinical Reference &amp; Calculator
+          Interactive Clinical Reference, Step Router &amp; Smart i-Vent
         </span>
         <p class="text-xs text-slate-500 mt-1">
-          Enter patient parameters to auto-calculate BMI &amp; loading dose directly inside Step 2, or click a cohort button/column header to highlight a pathway.
+          Enter patient parameters and encounter status to highlight active steps and generate a ready-to-copy Epic i-Vent note.
         </p>
       </div>
 
       <div class="flex items-center gap-2">
         <button onclick="resetPatient()" class="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-300 transition">
-          Reset Patient
+          Reset All
         </button>
         <button onclick="handlePrintOrSave()" class="px-3.5 py-1.5 text-xs font-semibold text-white bg-slate-800 hover:bg-slate-900 rounded-lg shadow-sm transition flex items-center gap-1.5">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
@@ -86,10 +110,10 @@
       </div>
     </div>
 
-    <!-- Patient Auto-Router & Anthropometrics -->
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end mb-4">
+    <!-- Row 1: Patient Auto-Router & Anthropometrics -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end mb-3">
       <div class="md:col-span-3">
-        <label class="block text-xs font-semibold text-slate-700 mb-1">Actual Body Weight (kg)</label>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Total Body Weight — TBW (kg)</label>
         <input id="weightInput" type="number" min="25" max="300" step="0.1" placeholder="e.g., 95" oninput="recalculatePatient()" class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
       </div>
 
@@ -117,8 +141,160 @@
       </div>
     </div>
 
-    <!-- Manual Cohort Selection Pills -->
-    <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+    <!-- Step 4 Course Variable: Severe Infection Indications & Forced Choice Boxes -->
+    <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-800">Step 4 Course Variable — Infection Severity:</span>
+          <span id="severitySourceBadge" class="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-200 text-slate-700">Auto (By Cohort)</span>
+        </div>
+        <!-- Forced Choice Boxes -->
+        <div class="inline-flex items-center gap-2">
+          <button type="button" id="sevForceSevereBtn" onclick="forceSeverity('severe')" class="px-3 py-1 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-rose-50 hover:border-rose-300 transition flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-rose-600"></span>
+            Severe Infection
+          </button>
+          <button type="button" id="sevForceNonSevereBtn" onclick="forceSeverity('nonsevere')" class="px-3 py-1 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 transition flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+            Non-Severe Infection
+          </button>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 pt-1.5 border-t border-slate-200/80">
+        <span class="text-[11px] font-semibold text-slate-600 mr-1">Auto-Severe Indications (select any):</span>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer bg-white border border-slate-300 rounded-md px-2.5 py-1 text-xs font-medium text-slate-800 hover:bg-rose-50/60 transition">
+          <input type="checkbox" class="sev-indication-chk w-3.5 h-3.5 text-rose-600 rounded" value="Sepsis" onchange="handleIndicationChange()" />
+          <span>Sepsis</span>
+        </label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer bg-white border border-slate-300 rounded-md px-2.5 py-1 text-xs font-medium text-slate-800 hover:bg-rose-50/60 transition">
+          <input type="checkbox" class="sev-indication-chk w-3.5 h-3.5 text-rose-600 rounded" value="Bloodstream" onchange="handleIndicationChange()" />
+          <span>Bloodstream</span>
+        </label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer bg-white border border-slate-300 rounded-md px-2.5 py-1 text-xs font-medium text-slate-800 hover:bg-rose-50/60 transition">
+          <input type="checkbox" class="sev-indication-chk w-3.5 h-3.5 text-rose-600 rounded" value="CNS" onchange="handleIndicationChange()" />
+          <span>CNS</span>
+        </label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer bg-white border border-slate-300 rounded-md px-2.5 py-1 text-xs font-medium text-slate-800 hover:bg-rose-50/60 transition">
+          <input type="checkbox" class="sev-indication-chk w-3.5 h-3.5 text-rose-600 rounded" value="Necrotizing" onchange="handleIndicationChange()" />
+          <span>Necrotizing</span>
+        </label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer bg-white border border-slate-300 rounded-md px-2.5 py-1 text-xs font-medium text-slate-800 hover:bg-rose-50/60 transition">
+          <input type="checkbox" class="sev-indication-chk w-3.5 h-3.5 text-rose-600 rounded" value="Endovascular" onchange="handleIndicationChange()" />
+          <span>Endovascular</span>
+        </label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer bg-white border border-slate-300 rounded-md px-2.5 py-1 text-xs font-medium text-slate-800 hover:bg-rose-50/60 transition">
+          <input type="checkbox" class="sev-indication-chk w-3.5 h-3.5 text-rose-600 rounded" value="Osteomyelitis" onchange="handleIndicationChange()" />
+          <span>Osteomyelitis</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Row 2: Encounter Stage & Lab Follow-Up Workflow Router -->
+    <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+        <!-- Encounter Stage -->
+        <div class="md:col-span-4">
+          <label class="block text-xs font-bold text-slate-700 mb-1">1. Encounter Stage</label>
+          <div class="grid grid-cols-2 gap-1.5 bg-white p-1 rounded-lg border border-slate-300">
+            <button type="button" id="stageNewBtn" onclick="setEncounterStage('new')" class="px-2.5 py-1.5 rounded-md text-xs font-bold bg-blue-600 text-white shadow-sm transition">
+              New Start (Initial)
+            </button>
+            <button type="button" id="stageFuBtn" onclick="setEncounterStage('followup')" class="px-2.5 py-1.5 rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-100 transition">
+              Follow-Up (Daily)
+            </button>
+          </div>
+        </div>
+
+        <!-- New Start Regimen Details (Visible in New Start) -->
+        <div id="newStartControls" class="md:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-end">
+          <div>
+            <label class="flex items-center gap-1.5 cursor-pointer bg-white border border-slate-300 rounded-lg px-2.5 py-2 hover:bg-slate-50 transition">
+              <input id="giveLdCheck" type="checkbox" checked onchange="updateWorkflowAndIvent()" class="w-4 h-4 text-blue-600 rounded" />
+              <span class="text-xs font-semibold text-slate-800">Give Loading Dose</span>
+            </label>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Maint. Dose (mg)</label>
+            <input id="initMaintDose" type="number" step="250" placeholder="e.g., 1250" oninput="updateWorkflowAndIvent()" class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Maint. Interval</label>
+            <select id="initMaintFreq" onchange="updateWorkflowAndIvent()" class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+              <option value="12">Every 12 hours (q12h)</option>
+              <option value="8">Every 8 hours (q8h)</option>
+              <option value="18">Every 18 hours (q18h)</option>
+              <option value="24">Every 24 hours (q24h)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Follow-Up Lab Selector (Visible in Follow-Up) -->
+        <div id="followUpControls" class="hidden md:col-span-8 grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
+          <div class="sm:col-span-5">
+            <label class="block text-xs font-bold text-slate-700 mb-1">2. Which Lab Are You Following Up On?</label>
+            <select id="labStageSelect" onchange="updateWorkflowAndIvent()" class="w-full px-2.5 py-1.5 text-xs font-semibold bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+              <option value="no_new_lab">No new level today (Routine daily check)</option>
+              <option value="after_1st_maint" selected>Initial lab(s) after 1st maintenance dose (Step 5)</option>
+              <option value="after_adjustment">Repeat level after dose adjustment (Step 6)</option>
+              <option value="steady_state">Steady-state / weekly monitoring level (Step 8)</option>
+            </select>
+          </div>
+
+          <div id="labStatusWrap" class="sm:col-span-4">
+            <label class="block text-xs font-bold text-slate-700 mb-1">3. Level / AUC₂₄ Assessment</label>
+            <div class="grid grid-cols-2 gap-1 bg-white p-1 rounded-lg border border-slate-300">
+              <button type="button" id="statusTherBtn" onclick="setLabStatus('therapeutic')" class="px-2 py-1 rounded text-[11px] font-bold bg-emerald-600 text-white shadow-sm transition">
+                Therapeutic
+              </button>
+              <button type="button" id="statusNonTherBtn" onclick="setLabStatus('nontherapeutic')" class="px-2 py-1 rounded text-[11px] font-semibold text-slate-700 hover:bg-slate-100 transition">
+                Non-Therapeutic
+              </button>
+            </div>
+          </div>
+
+          <div id="fuRegimenWrap" class="sm:col-span-3 grid grid-cols-2 gap-1.5">
+            <div>
+              <label id="fuDoseLabel" class="block text-[10px] font-semibold text-slate-600 mb-1">Current Dose</label>
+              <input id="fuDoseInput" type="number" step="250" placeholder="mg" oninput="updateWorkflowAndIvent()" class="w-full px-2 py-1.5 text-xs bg-white border border-slate-300 rounded-lg outline-none" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-600 mb-1">Interval</label>
+              <select id="fuFreqInput" onchange="updateWorkflowAndIvent()" class="w-full px-1.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg outline-none">
+                <option value="12">q12h</option>
+                <option value="8">q8h</option>
+                <option value="18">q18h</option>
+                <option value="24">q24h</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Optional AUC / Level Value Bar for Follow-Up -->
+      <div id="fuExtraDetails" class="hidden mt-2.5 pt-2.5 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
+        <div class="sm:col-span-4 flex items-center gap-2">
+          <label class="text-[11px] font-semibold text-slate-600 whitespace-nowrap">DoseMeRx AUC₂₄:</label>
+          <input id="aucValueInput" type="number" placeholder="e.g., 485" oninput="updateWorkflowAndIvent()" class="w-24 px-2 py-1 text-xs bg-white border border-slate-300 rounded-md outline-none" />
+          <span class="text-[11px] text-slate-500">mg·h/L</span>
+        </div>
+        <div class="sm:col-span-4 flex items-center gap-2">
+          <label class="text-[11px] font-semibold text-slate-600 whitespace-nowrap">Measured Level:</label>
+          <input id="levelValueInput" type="number" step="0.1" placeholder="e.g., 14.2" oninput="updateWorkflowAndIvent()" class="w-24 px-2 py-1 text-xs bg-white border border-slate-300 rounded-md outline-none" />
+          <span class="text-[11px] text-slate-500">mcg/mL</span>
+        </div>
+        <div id="nonTherDirectionWrap" class="hidden sm:col-span-4 flex items-center gap-2">
+          <label class="text-[11px] font-semibold text-slate-600 whitespace-nowrap">Out-of-Range:</label>
+          <select id="nonTherDirection" onchange="updateWorkflowAndIvent()" class="w-full px-2 py-1 text-xs bg-white border border-slate-300 rounded-md outline-none">
+            <option value="below">Below goal range (AUC &lt; 400)</option>
+            <option value="above">Above goal range (AUC &gt; 600)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3: Manual Cohort Selection Pills -->
+    <div class="flex flex-wrap items-center gap-2 pt-1">
       <span class="text-xs font-semibold text-slate-600 mr-1">Highlight Pathway:</span>
       <button onclick="selectCohort(0)" id="pill-0" class="cohort-pill px-3 py-1 rounded-full text-xs font-semibold bg-blue-600 text-white shadow-sm transition">
         Show All Columns
@@ -139,7 +315,7 @@
   </div>
 
   <!-- Main Infographic Card -->
-  <div id="print-container" class="max-w-7xl mx-auto bg-white rounded-2xl shadow-md border border-slate-300 overflow-hidden">
+  <div id="print-container" class="max-w-7xl mx-auto bg-white rounded-2xl shadow-md border border-slate-300 overflow-hidden mb-5">
 
     <!-- Top Infographic Title Banner & Flow Arrows -->
     <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white px-6 pt-5 pb-4">
@@ -205,7 +381,7 @@
 
         <tbody class="divide-y divide-slate-300">
           <!-- STEP 1 -->
-          <tr class="bg-white">
+          <tr id="row-step-1" class="bg-white">
             <td class="p-3.5 font-bold text-slate-900 bg-slate-100 align-top">
               <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-900 text-white text-xs font-extrabold mr-1.5">1</span>
               Demographic / Clinical criteria
@@ -228,7 +404,7 @@
           </tr>
 
           <!-- STEP 2 (Includes Inline Dynamic Dose Calculation) -->
-          <tr class="bg-slate-50/70">
+          <tr id="row-step-2" class="bg-slate-50/70">
             <td class="p-3.5 font-bold text-slate-900 bg-slate-100 align-top">
               <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-900 text-white text-xs font-extrabold mr-1.5">2</span>
               Loading dose (if indicated)
@@ -254,7 +430,7 @@
           </tr>
 
           <!-- STEP 3 -->
-          <tr class="bg-white">
+          <tr id="row-step-3" class="bg-white">
             <td class="p-3.5 font-bold text-slate-900 bg-slate-100 align-top">
               <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-900 text-white text-xs font-extrabold mr-1.5">3</span>
               Dose Me Rx model (Population)
@@ -277,35 +453,55 @@
           </tr>
 
           <!-- STEP 4 -->
-          <tr class="bg-slate-50/70">
+          <tr id="row-step-4" class="bg-slate-50/70">
             <td class="p-3.5 font-bold text-slate-900 bg-slate-100 align-top">
               <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-900 text-white text-xs font-extrabold mr-1.5">4</span>
               Update course variables Indication (severity)
             </td>
-            <td data-cohorts="1" class="p-3.5 text-center align-middle font-semibold text-rose-900">
-              <span class="inline-block bg-rose-50 border border-rose-200 px-3 py-1 rounded-md">
-                Severe infection
-              </span>
+            <td data-cohorts="1" class="p-3.5 text-center align-middle">
+              <div class="inline-flex flex-col gap-1.5 w-full max-w-[175px]">
+                <button type="button" onclick="forceSeverity('severe')" id="step4-box-1-severe" class="px-2.5 py-1.5 rounded-md text-xs font-bold border border-rose-300 bg-rose-50 text-rose-900 transition">
+                  Severe infection
+                </button>
+                <button type="button" onclick="forceSeverity('nonsevere')" id="step4-box-1-nonsevere" class="px-2.5 py-1 rounded-md text-[11px] font-medium border border-slate-200 bg-white/70 text-slate-500 hover:bg-emerald-50 hover:text-emerald-900 transition">
+                  Non-severe infection
+                </button>
+              </div>
             </td>
-            <td data-cohorts="2" class="p-3.5 text-center align-middle font-semibold text-rose-900">
-              <span class="inline-block bg-rose-50 border border-rose-200 px-3 py-1 rounded-md">
-                Severe infection
-              </span>
+            <td data-cohorts="2" class="p-3.5 text-center align-middle">
+              <div class="inline-flex flex-col gap-1.5 w-full max-w-[175px]">
+                <button type="button" onclick="forceSeverity('severe')" id="step4-box-2-severe" class="px-2.5 py-1.5 rounded-md text-xs font-bold border border-rose-300 bg-rose-50 text-rose-900 transition">
+                  Severe infection
+                </button>
+                <button type="button" onclick="forceSeverity('nonsevere')" id="step4-box-2-nonsevere" class="px-2.5 py-1 rounded-md text-[11px] font-medium border border-slate-200 bg-white/70 text-slate-500 hover:bg-emerald-50 hover:text-emerald-900 transition">
+                  Non-severe infection
+                </button>
+              </div>
             </td>
-            <td data-cohorts="3" class="p-3.5 text-center align-middle font-semibold text-emerald-900">
-              <span class="inline-block bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-md">
-                Non-severe infection
-              </span>
+            <td data-cohorts="3" class="p-3.5 text-center align-middle">
+              <div class="inline-flex flex-col gap-1.5 w-full max-w-[175px]">
+                <button type="button" onclick="forceSeverity('severe')" id="step4-box-3-severe" class="px-2.5 py-1 rounded-md text-[11px] font-medium border border-slate-200 bg-white/70 text-slate-500 hover:bg-rose-50 hover:text-rose-900 transition">
+                  Severe infection
+                </button>
+                <button type="button" onclick="forceSeverity('nonsevere')" id="step4-box-3-nonsevere" class="px-2.5 py-1.5 rounded-md text-xs font-bold border border-emerald-300 bg-emerald-50 text-emerald-900 transition">
+                  Non-severe infection
+                </button>
+              </div>
             </td>
-            <td data-cohorts="4" class="p-3.5 text-center align-middle font-semibold text-emerald-900">
-              <span class="inline-block bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-md">
-                Non-severe infection
-              </span>
+            <td data-cohorts="4" class="p-3.5 text-center align-middle">
+              <div class="inline-flex flex-col gap-1.5 w-full max-w-[175px]">
+                <button type="button" onclick="forceSeverity('severe')" id="step4-box-4-severe" class="px-2.5 py-1 rounded-md text-[11px] font-medium border border-slate-200 bg-white/70 text-slate-500 hover:bg-rose-50 hover:text-rose-900 transition">
+                  Severe infection
+                </button>
+                <button type="button" onclick="forceSeverity('nonsevere')" id="step4-box-4-nonsevere" class="px-2.5 py-1.5 rounded-md text-xs font-bold border border-emerald-300 bg-emerald-50 text-emerald-900 transition">
+                  Non-severe infection
+                </button>
+              </div>
             </td>
           </tr>
 
           <!-- STEP 5 -->
-          <tr class="bg-white">
+          <tr id="row-step-5" class="bg-white">
             <td class="p-3.5 font-bold text-slate-900 bg-slate-100 align-top">
               <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-900 text-white text-xs font-extrabold mr-1.5">5</span>
               Initial labs After 1st maintenance dose
@@ -324,7 +520,7 @@
           </tr>
 
           <!-- STEP 6 -->
-          <tr class="bg-slate-50/70">
+          <tr id="row-step-6" class="bg-slate-50/70">
             <td class="p-3.5 font-bold text-slate-900 bg-slate-100 align-top">
               <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-900 text-white text-xs font-extrabold mr-1.5">6</span>
               Non-Therapeutic level
@@ -338,7 +534,7 @@
           </tr>
 
           <!-- STEP 7 -->
-          <tr class="bg-white">
+          <tr id="row-step-7" class="bg-white">
             <td class="p-3.5 font-bold text-slate-900 bg-slate-100 align-top">
               <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-900 text-white text-xs font-extrabold mr-1.5">7</span>
               After 1st therapeutic level
@@ -349,7 +545,7 @@
           </tr>
 
           <!-- STEP 8 -->
-          <tr class="bg-slate-50/70">
+          <tr id="row-step-8" class="bg-slate-50/70">
             <td class="p-3.5 font-bold text-slate-900 bg-slate-100 align-top">
               <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-900 text-white text-xs font-extrabold mr-1.5">8</span>
               lab at steady state
@@ -366,10 +562,137 @@
     </div>
   </div>
 
+  <!-- Smart Epic i-Vent Generator Panel (Hidden on Print) -->
+  <div class="no-print max-w-7xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-300 overflow-hidden">
+    <div class="bg-slate-900 text-white px-5 py-3.5 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5">
+        <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-blue-600 text-white font-extrabold text-xs">Rx</span>
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-sm font-bold tracking-tight">Smart Epic i-Vent Documentation Generator</h2>
+            <span id="iventTemplateBadge" class="text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-500/20 text-blue-200 border border-blue-400/30">
+              Template: Pharmacy Managed Vancomycin - Initial Dosing
+            </span>
+          </div>
+          <p id="iventActiveSummary" class="text-xs text-slate-300 mt-0.5">
+            Automatically formatted for today's encounter and active workflow step(s).
+          </p>
+        </div>
+      </div>
+
+      <button type="button" id="copyIventBtn" onclick="copyIventText()" class="px-4 py-2 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition flex items-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+        <span id="copyBtnLabel">Copy i-Vent Text</span>
+      </button>
+    </div>
+
+    <div class="p-4 bg-slate-50">
+      <div id="iventActionCallout" class="mb-3 px-3.5 py-2.5 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-950 font-medium"></div>
+      <textarea id="iventOutput" rows="11" readonly class="w-full font-mono text-xs leading-relaxed bg-white text-slate-900 p-3.5 rounded-xl border border-slate-300 focus:outline-none shadow-inner"></textarea>
+    </div>
+  </div>
+
   <script>
     let activeCohort = 0;
     let heightUnit = 'cm';
     let manualBmi = false;
+    let encounterStage = 'new'; // 'new' | 'followup'
+    let labStatus = 'therapeutic'; // 'therapeutic' | 'nontherapeutic'
+    let forcedSeverity = null; // null | 'severe' | 'nonsevere'
+
+    function getSelectedSevereIndications() {
+      return Array.from(document.querySelectorAll('.sev-indication-chk:checked')).map(cb => cb.value);
+    }
+
+    function getEffectiveSeverity() {
+      const selectedIndications = getSelectedSevereIndications();
+      if (selectedIndications.length > 0) {
+        return {
+          mode: 'severe',
+          label: 'Severe infection',
+          reason: `Auto-selected (${selectedIndications.join(', ')})`,
+          indications: selectedIndications
+        };
+      }
+      if (forcedSeverity === 'severe') {
+        return {
+          mode: 'severe',
+          label: 'Severe infection',
+          reason: 'Forced Choice',
+          indications: []
+        };
+      }
+      if (forcedSeverity === 'nonsevere') {
+        return {
+          mode: 'nonsevere',
+          label: 'Non-severe infection',
+          reason: 'Forced Choice',
+          indications: []
+        };
+      }
+      const cohort = activeCohort || 4;
+      const defaultSevere = cohort === 1 || cohort === 2;
+      return {
+        mode: defaultSevere ? 'severe' : 'nonsevere',
+        label: defaultSevere ? 'Severe infection' : 'Non-severe infection',
+        reason: 'Default by Cohort',
+        indications: []
+      };
+    }
+
+    function forceSeverity(mode) {
+      // Clear auto-severe indication checkboxes if user explicitly forces Non-Severe
+      if (mode === 'nonsevere') {
+        document.querySelectorAll('.sev-indication-chk').forEach(cb => {
+          cb.checked = false;
+        });
+      }
+      forcedSeverity = mode;
+      updateWorkflowAndIvent();
+    }
+
+    function handleIndicationChange() {
+      const selected = getSelectedSevereIndications();
+      if (selected.length > 0) {
+        forcedSeverity = null; // Indication auto-selection takes precedence
+      }
+      updateWorkflowAndIvent();
+    }
+
+    function renderSeverityControlsAndMatrix() {
+      const eff = getEffectiveSeverity();
+      const badge = document.getElementById('severitySourceBadge');
+      const severeBtn = document.getElementById('sevForceSevereBtn');
+      const nonSevereBtn = document.getElementById('sevForceNonSevereBtn');
+
+      badge.textContent = eff.reason;
+      if (eff.mode === 'severe') {
+        badge.className = "text-[11px] font-semibold px-2 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-200";
+        severeBtn.className = "px-3 py-1 rounded-lg text-xs font-bold border border-rose-600 bg-rose-600 text-white shadow-sm transition flex items-center gap-1.5";
+        nonSevereBtn.className = "px-3 py-1 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 transition flex items-center gap-1.5";
+      } else {
+        badge.className = "text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200";
+        nonSevereBtn.className = "px-3 py-1 rounded-lg text-xs font-bold border border-emerald-600 bg-emerald-600 text-white shadow-sm transition flex items-center gap-1.5";
+        severeBtn.className = "px-3 py-1 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-rose-50 hover:border-rose-300 transition flex items-center gap-1.5";
+      }
+
+      // Update Step 4 matrix boxes across columns 1-4
+      for (let col = 1; col <= 4; col++) {
+        const sevBox = document.getElementById(`step4-box-${col}-severe`);
+        const nonSevBox = document.getElementById(`step4-box-${col}-nonsevere`);
+        const isColTarget = activeCohort === 0 || activeCohort === col;
+        const colDefaultSevere = col === 1 || col === 2;
+        const showSevere = isColTarget ? (eff.mode === 'severe') : colDefaultSevere;
+
+        if (showSevere) {
+          sevBox.className = "px-2.5 py-1.5 rounded-md text-xs font-bold border border-rose-500 bg-rose-100 text-rose-950 shadow-sm transition";
+          nonSevBox.className = "px-2.5 py-1 rounded-md text-[11px] font-medium border border-slate-200 bg-white/70 text-slate-400 hover:bg-emerald-50 hover:text-emerald-900 transition";
+        } else {
+          sevBox.className = "px-2.5 py-1 rounded-md text-[11px] font-medium border border-slate-200 bg-white/70 text-slate-400 hover:bg-rose-50 hover:text-rose-900 transition";
+          nonSevBox.className = "px-2.5 py-1.5 rounded-md text-xs font-bold border border-emerald-500 bg-emerald-100 text-emerald-950 shadow-sm transition";
+        }
+      }
+    }
 
     function roundTo250(val) {
       return Math.round(val / 250) * 250;
@@ -406,6 +729,51 @@
       manualBmi = true;
       document.getElementById('bmiAutoBadge').classList.add('hidden');
       recalculatePatient();
+    }
+
+    function setEncounterStage(stage) {
+      encounterStage = stage;
+      const newBtn = document.getElementById('stageNewBtn');
+      const fuBtn = document.getElementById('stageFuBtn');
+      const newControls = document.getElementById('newStartControls');
+      const fuControls = document.getElementById('followUpControls');
+      const fuExtra = document.getElementById('fuExtraDetails');
+
+      if (stage === 'new') {
+        newBtn.className = "px-2.5 py-1.5 rounded-md text-xs font-bold bg-blue-600 text-white shadow-sm transition";
+        fuBtn.className = "px-2.5 py-1.5 rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-100 transition";
+        newControls.classList.remove('hidden');
+        fuControls.classList.add('hidden');
+        fuExtra.classList.add('hidden');
+      } else {
+        fuBtn.className = "px-2.5 py-1.5 rounded-md text-xs font-bold bg-blue-600 text-white shadow-sm transition";
+        newBtn.className = "px-2.5 py-1.5 rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-100 transition";
+        newControls.classList.add('hidden');
+        fuControls.classList.remove('hidden');
+        fuExtra.classList.remove('hidden');
+      }
+      updateWorkflowAndIvent();
+    }
+
+    function setLabStatus(status) {
+      labStatus = status;
+      const therBtn = document.getElementById('statusTherBtn');
+      const nonTherBtn = document.getElementById('statusNonTherBtn');
+      const dirWrap = document.getElementById('nonTherDirectionWrap');
+      const doseLabel = document.getElementById('fuDoseLabel');
+
+      if (status === 'therapeutic') {
+        therBtn.className = "px-2 py-1 rounded text-[11px] font-bold bg-emerald-600 text-white shadow-sm transition";
+        nonTherBtn.className = "px-2 py-1 rounded text-[11px] font-semibold text-slate-700 hover:bg-slate-100 transition";
+        dirWrap.classList.add('hidden');
+        doseLabel.textContent = "Current Dose";
+      } else {
+        nonTherBtn.className = "px-2 py-1 rounded text-[11px] font-bold bg-rose-600 text-white shadow-sm transition";
+        therBtn.className = "px-2 py-1 rounded text-[11px] font-semibold text-slate-700 hover:bg-slate-100 transition";
+        dirWrap.classList.remove('hidden');
+        doseLabel.textContent = "New Dose";
+      }
+      updateWorkflowAndIvent();
     }
 
     function selectCohort(cohortId) {
@@ -446,47 +814,63 @@
       });
 
       renderInlineLoadingDoses();
+      updateWorkflowAndIvent();
     }
 
-    function renderInlineLoadingDoses() {
+    function getCalculatedLoadingInfo() {
       const wt = parseFloat(document.getElementById('weightInput').value);
-      const box1 = document.getElementById('inline-dose-1');
-      const box23 = document.getElementById('inline-dose-23');
-      const box4 = document.getElementById('inline-dose-4');
+      if (!wt || wt <= 0) return null;
 
-      if (!wt || wt <= 0) {
-        box1.classList.add('hidden');
-        box23.classList.add('hidden');
-        box4.classList.add('hidden');
-        return;
-      }
-
-      // Standard Load (~25 mg/kg, capped at 3,000 mg)
       const stdRaw = wt * 25;
       const stdRounded = Math.min(3000, Math.max(500, roundTo250(stdRaw)));
       const stdActualMgKg = (stdRounded / wt).toFixed(1);
       const stdInf = getInfusionDuration(stdRounded);
 
-      // Modified Obese Load (~20-25 mg/kg, capped at 3,000 mg)
       const modLow = roundTo250(wt * 20);
       const modHigh = roundTo250(wt * 25);
       const modRec = Math.min(3000, Math.max(500, roundTo250(wt * 22.5)));
       const modActualMgKg = (modRec / wt).toFixed(1);
       const modInf = getInfusionDuration(modRec);
 
+      return {
+        wt,
+        stdRounded,
+        stdActualMgKg,
+        stdInf,
+        modLow: Math.min(3000, modLow),
+        modHigh: Math.min(3000, modHigh),
+        modRec,
+        modActualMgKg,
+        modInf
+      };
+    }
+
+    function renderInlineLoadingDoses() {
+      const info = getCalculatedLoadingInfo();
+      const box1 = document.getElementById('inline-dose-1');
+      const box23 = document.getElementById('inline-dose-23');
+      const box4 = document.getElementById('inline-dose-4');
+
+      if (!info) {
+        box1.classList.add('hidden');
+        box23.classList.add('hidden');
+        box4.classList.add('hidden');
+        return;
+      }
+
       const stdHtml = `
         <div class="inline-block text-left bg-blue-600 text-white rounded-lg px-3 py-2 shadow-sm border border-blue-700">
-          <div class="text-[10px] uppercase tracking-wider font-semibold text-blue-100">Calculated Dose (${wt} kg)</div>
-          <div class="text-base font-extrabold leading-tight">${stdRounded.toLocaleString()} mg × 1 <span class="text-xs font-normal text-blue-100">(${stdActualMgKg} mg/kg)</span></div>
-          <div class="text-[11px] text-blue-100 mt-0.5">Infuse over ≥ <strong>${stdInf}</strong></div>
+          <div class="text-[10px] uppercase tracking-wider font-semibold text-blue-100">Calculated Dose (${info.wt} kg TBW)</div>
+          <div class="text-base font-extrabold leading-tight">${info.stdRounded.toLocaleString()} mg × 1 <span class="text-xs font-normal text-blue-100">(${info.stdActualMgKg} mg/kg)</span></div>
+          <div class="text-[11px] text-blue-100 mt-0.5">Infuse over ≥ <strong>${info.stdInf}</strong></div>
         </div>
       `;
 
       const modHtml = `
         <div class="inline-block text-left bg-sky-700 text-white rounded-lg px-3 py-2 shadow-sm border border-sky-800">
-          <div class="text-[10px] uppercase tracking-wider font-semibold text-sky-100">Calculated Modified Dose (${wt} kg)</div>
-          <div class="text-base font-extrabold leading-tight">${modRec.toLocaleString()} mg × 1 <span class="text-xs font-normal text-sky-100">(${modActualMgKg} mg/kg; range ${Math.min(3000, modLow).toLocaleString()}–${Math.min(3000, modHigh).toLocaleString()} mg)</span></div>
-          <div class="text-[11px] text-sky-100 mt-0.5">Infuse over ≥ <strong>${modInf}</strong></div>
+          <div class="text-[10px] uppercase tracking-wider font-semibold text-sky-100">Calculated Modified Dose (${info.wt} kg TBW)</div>
+          <div class="text-base font-extrabold leading-tight">${info.modRec.toLocaleString()} mg × 1 <span class="text-xs font-normal text-sky-100">(${info.modActualMgKg} mg/kg; range ${info.modLow.toLocaleString()}–${info.modHigh.toLocaleString()} mg)</span></div>
+          <div class="text-[11px] text-sky-100 mt-0.5">Infuse over ≥ <strong>${info.modInf}</strong></div>
         </div>
       `;
 
@@ -515,6 +899,252 @@
       }
     }
 
+    function updateWorkflowAndIvent() {
+      const labStage = document.getElementById('labStageSelect').value;
+      const statusWrap = document.getElementById('labStatusWrap');
+      const fuExtra = document.getElementById('fuExtraDetails');
+
+      if (encounterStage === 'followup') {
+        if (labStage === 'no_new_lab') {
+          statusWrap.classList.add('opacity-40', 'pointer-events-none');
+          fuExtra.classList.add('hidden');
+        } else {
+          statusWrap.classList.remove('opacity-40', 'pointer-events-none');
+          fuExtra.classList.remove('hidden');
+        }
+      }
+
+      // Determine active steps to highlight in the 8-step matrix
+      let activeSteps = [];
+      let actionBanner = "";
+
+      if (encounterStage === 'new') {
+        const giveLd = document.getElementById('giveLdCheck').checked;
+        activeSteps = giveLd ? [1, 2, 3, 4, 5, 6, 7, 8] : [1, 3, 4, 5, 6, 7, 8];
+        actionBanner = giveLd
+          ? "Active Workflow: New Start (Full 8-Step Pathway) — Verify cohort model, administer loading dose + maintenance regimen, and follow the complete monitoring plan below."
+          : "Active Workflow: New Start without Loading Dose (Steps 1, 3–8) — Verify cohort model, initiate maintenance regimen, and follow the complete monitoring plan below.";
+      } else {
+        if (labStage === 'no_new_lab') {
+          activeSteps = [5];
+          actionBanner = "Active Workflow: Daily Monitoring (No New Level) — Continue current regimen and verify scheduled initial or steady-state lab timing.";
+        } else if (labStage === 'after_1st_maint') {
+          if (labStatus === 'therapeutic') {
+            activeSteps = [5, 7];
+            actionBanner = "Active Workflow: Step 5 → Step 7 — Level after 1st maintenance dose is THERAPEUTIC (AUC₂₄ 400–600). Continue current regimen and obtain a random level with AM labs at steady state.";
+          } else {
+            activeSteps = [5, 6];
+            actionBanner = "Active Workflow: Step 5 → Step 6 — Level after 1st maintenance dose is NON-THERAPEUTIC. Adjust dose/interval per DoseMeRx (individualized/custom) and check random level with AM labs until therapeutic.";
+          }
+        } else if (labStage === 'after_adjustment') {
+          if (labStatus === 'therapeutic') {
+            activeSteps = [6, 7];
+            actionBanner = "Active Workflow: Step 6 → Step 7 — Repeat level after dose adjustment is now THERAPEUTIC. Continue adjusted regimen and confirm at steady state with AM labs.";
+          } else {
+            activeSteps = [6];
+            actionBanner = "Active Workflow: Step 6 (Repeat) — Level remains NON-THERAPEUTIC. Re-adjust per DoseMeRx and check random level with AM labs (≥ 2 hrs post-infusion) until therapeutic.";
+          }
+        } else if (labStage === 'steady_state') {
+          if (labStatus === 'therapeutic') {
+            activeSteps = [8];
+            actionBanner = "Active Workflow: Step 8b — Steady-state level is THERAPEUTIC. Continue current regimen and transition to weekly monitoring with AM labs (unless significant renal function change occurs).";
+          } else {
+            activeSteps = [8, 6];
+            actionBanner = "Active Workflow: Step 8a → Step 6 — Steady-state level is NON-THERAPEUTIC. Adjust per DoseMeRx and recheck random level with AM labs until therapeutic.";
+          }
+        }
+      }
+
+      // Apply row & cell highlights
+      for (let s = 1; s <= 8; s++) {
+        const row = document.getElementById(`row-step-${s}`);
+        const isStepActive = activeSteps.includes(s);
+        if (isStepActive) {
+          row.classList.add('step-active-row');
+          row.classList.remove('step-dimmed-row');
+        } else {
+          row.classList.remove('step-active-row');
+          row.classList.add('step-dimmed-row');
+        }
+
+        row.querySelectorAll('td[data-cohorts]').forEach(cell => {
+          const cohorts = cell.getAttribute('data-cohorts').split(',').map(Number);
+          const matchesCohort = activeCohort === 0 || cohorts.includes(activeCohort);
+          if (isStepActive && matchesCohort) {
+            cell.classList.add('step-active-cell');
+          } else {
+            cell.classList.remove('step-active-cell');
+          }
+        });
+      }
+
+      document.getElementById('iventActionCallout').textContent = actionBanner;
+      renderSeverityControlsAndMatrix();
+      generateSmartIvent();
+    }
+
+    function generateSmartIvent() {
+      const info = getCalculatedLoadingInfo();
+      const bmiVal = document.getElementById('bmiInput').value;
+      const cohort = activeCohort || 4;
+      const effSev = getEffectiveSeverity();
+
+      const cohortDetails = {
+        1: {
+          name: "Complex / Clinically Unstable",
+          model: "2-compartment",
+          isObese: false,
+          initialLabPlan: "Will check vancomycin peak (1-2 hrs after END of infusion) and trough (30 mins prior to next scheduled dose) following the 1st maintenance dose, or sooner if renal function changes significantly."
+        },
+        2: {
+          name: "Complex / Clinically Unstable + Obese (BMI ≥ 30)",
+          model: "Enhanced obese adult",
+          isObese: true,
+          initialLabPlan: "Will check vancomycin peak (1-2 hrs after END of infusion) and trough (30 mins prior to next scheduled dose) following the 1st maintenance dose, or sooner if renal function changes significantly."
+        },
+        3: {
+          name: "Obese (BMI ≥ 30)",
+          model: "Enhanced obese adult",
+          isObese: true,
+          initialLabPlan: "Will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion) following the 1st maintenance dose, or sooner if renal function changes significantly."
+        },
+        4: {
+          name: "Standard Adult (All Other Patients)",
+          model: "1-compartment",
+          isObese: false,
+          initialLabPlan: "Will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion) following the 1st maintenance dose, or sooner if renal function changes significantly."
+        }
+      };
+
+      const c = cohortDetails[cohort];
+      const severityDisplay = effSev.indications.length > 0
+        ? `${effSev.label} (${effSev.indications.join(", ")})`
+        : effSev.label;
+      const templateBadge = document.getElementById('iventTemplateBadge');
+      const summaryEl = document.getElementById('iventActiveSummary');
+      const outputEl = document.getElementById('iventOutput');
+
+      if (encounterStage === 'new') {
+        templateBadge.textContent = "SmartText: Pharmacy Managed Vancomycin - Initial Dosing";
+        summaryEl.textContent = `Cohort ${cohort}: ${c.name} | Model: ${c.model} | ${severityDisplay}`;
+
+        const giveLd = document.getElementById('giveLdCheck').checked;
+        const maintDose = document.getElementById('initMaintDose').value || "***";
+        const maintFreq = document.getElementById('initMaintFreq').value || "***";
+
+        let ldText = "***";
+        let ldNote = "";
+        if (info) {
+          ldText = c.isObese ? `${info.modRec.toLocaleString()}` : `${info.stdRounded.toLocaleString()}`;
+          const actualMgKg = c.isObese ? info.modActualMgKg : info.stdActualMgKg;
+          const infDur = c.isObese ? info.modInf : info.stdInf;
+          ldNote = ` (${actualMgKg} mg/kg TBW [${info.wt} kg]${bmiVal ? `, BMI ${bmiVal} kg/m²` : ""}; infuse over ≥ ${infDur})`;
+        }
+
+        const dosingLine = giveLd
+          ? `1. Initiate vancomycin loading dose ${ldText} mg × 1${ldNote} followed by maintenance dosing of ${maintDose} mg every ${maintFreq} hours.`
+          : `1. Initiate vancomycin ${maintDose} mg every ${maintFreq} hours (loading dose omitted).`;
+
+        const text = [
+          `Pharmacy Managed Vancomycin - Initial Dosing`,
+          `DoseMeRx Model: ${c.model} | Course Severity: ${severityDisplay}${info ? ` | TBW: ${info.wt} kg` : ""}${bmiVal ? ` | BMI: ${bmiVal} kg/m²` : ""}`,
+          ``,
+          `Plan:`,
+          dosingLine,
+          `2. Goal: AUC 400-600 mg*h/L`,
+          `3. ${c.initialLabPlan}`,
+          `4. Check daily serum creatinine while receiving vancomycin.`,
+          `5. Follow daily, and monitor renal function, culture/sensitivity and clinical course as appropriate.`
+        ].join("\n");
+
+        outputEl.value = text;
+      } else {
+        templateBadge.textContent = "SmartText: PSH RX Vancomycin Monitoring (Daily Update)";
+        const labStage = document.getElementById('labStageSelect').value;
+        const doseVal = document.getElementById('fuDoseInput').value || "***";
+        const freqVal = document.getElementById('fuFreqInput').value || "***";
+        const aucVal = document.getElementById('aucValueInput').value;
+        const lvlVal = document.getElementById('levelValueInput').value;
+        const dirVal = document.getElementById('nonTherDirection').value;
+
+        let labContextNote = "";
+        if (aucVal || lvlVal) {
+          const parts = [];
+          if (lvlVal) parts.push(`Level: ${lvlVal} mcg/mL`);
+          if (aucVal) parts.push(`DoseMeRx AUC₂₄: ${aucVal} mg*h/L`);
+          labContextNote = ` (${parts.join(", ")})`;
+        }
+
+        let currentRegimenLine = `Current regimen: vancomycin ${doseVal} mg every ${freqVal} hours.`;
+        let planLine1 = "";
+
+        if (labStage === 'no_new_lab') {
+          summaryEl.textContent = "Daily Follow-Up — No new vancomycin level today";
+          planLine1 = `1. No new vancomycin levels today. Continue current regimen (${doseVal} mg every ${freqVal} hours) and monitor scheduled level with AM labs.`;
+        } else if (labStage === 'after_1st_maint') {
+          if (labStatus === 'therapeutic') {
+            summaryEl.textContent = "Step 5 → Step 7: Initial lab after 1st maintenance dose is THERAPEUTIC";
+            planLine1 = `1. Vancomycin level obtained after 1st maintenance dose is appropriate${labContextNote}. Continue current vancomycin regimen (${doseVal} mg every ${freqVal} hours). Will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion) at steady state.`;
+          } else {
+            summaryEl.textContent = "Step 5 → Step 6: Initial lab after 1st maintenance dose is NON-THERAPEUTIC";
+            const dirPhrase = dirVal === 'above' ? "Above goal range" : "Below goal range";
+            currentRegimenLine = `Adjusted regimen per DoseMeRx: vancomycin ${doseVal} mg every ${freqVal} hours.`;
+            planLine1 = `1. ${dirPhrase}${labContextNote}. Adjusted per DoseMeRx (individualized/custom dosing) — orders placed for new vancomycin regimen of ${doseVal} mg every ${freqVal} hours. Will repeat a random vancomycin level with AM labs (at least 2 hrs after END of infusion) until therapeutic.`;
+          }
+        } else if (labStage === 'after_adjustment') {
+          if (labStatus === 'therapeutic') {
+            summaryEl.textContent = "Step 6 → Step 7: Repeat level after dose adjustment is THERAPEUTIC";
+            planLine1 = `1. Repeat vancomycin level obtained is appropriate${labContextNote}. Continue current vancomycin regimen (${doseVal} mg every ${freqVal} hours). Will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion) at steady state.`;
+          } else {
+            summaryEl.textContent = "Step 6: Repeat level remains NON-THERAPEUTIC";
+            const dirPhrase = dirVal === 'above' ? "Above goal range" : "Below goal range";
+            currentRegimenLine = `Adjusted regimen per DoseMeRx: vancomycin ${doseVal} mg every ${freqVal} hours.`;
+            planLine1 = `1. ${dirPhrase}${labContextNote}. Re-adjusted per DoseMeRx — orders placed for new vancomycin regimen of ${doseVal} mg every ${freqVal} hours. Will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion) until therapeutic.`;
+          }
+        } else if (labStage === 'steady_state') {
+          if (labStatus === 'therapeutic') {
+            summaryEl.textContent = "Step 8b: Steady-state level is THERAPEUTIC (Weekly AM monitoring)";
+            planLine1 = `1. Steady-state vancomycin level obtained is appropriate${labContextNote}. Continue current vancomycin regimen (${doseVal} mg every ${freqVal} hours). Will monitor weekly with AM labs unless there is a significant change in renal function.`;
+          } else {
+            summaryEl.textContent = "Step 8a → Step 6: Steady-state level is NON-THERAPEUTIC";
+            const dirPhrase = dirVal === 'above' ? "Above goal range" : "Below goal range";
+            currentRegimenLine = `Adjusted regimen per DoseMeRx: vancomycin ${doseVal} mg every ${freqVal} hours.`;
+            planLine1 = `1. Steady-state level ${dirPhrase.toLowerCase()}${labContextNote}. Adjusted per DoseMeRx — orders placed for new vancomycin regimen of ${doseVal} mg every ${freqVal} hours. Will check a random vancomycin level with AM labs (at least 2 hrs after END of infusion) until therapeutic.`;
+          }
+        }
+
+        const text = [
+          `PSH RX Vancomycin Monitoring`,
+          `Assessment`,
+          currentRegimenLine,
+          ``,
+          `Plan`,
+          planLine1,
+          `2. Goal: AUC 400-600 mg*h/L`,
+          `3. Follow daily, and monitor renal function, culture/sensitivity and clinical course as appropriate.`
+        ].join("\n");
+
+        outputEl.value = text;
+      }
+    }
+
+    function copyIventText() {
+      const textarea = document.getElementById('iventOutput');
+      textarea.select();
+      textarea.setSelectionRange(0, 99999);
+      document.execCommand('copy');
+      const label = document.getElementById('copyBtnLabel');
+      const btn = document.getElementById('copyIventBtn');
+      label.textContent = "Copied!";
+      btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
+      btn.classList.add('bg-blue-600');
+      setTimeout(() => {
+        label.textContent = "Copy i-Vent Text";
+        btn.classList.add('bg-emerald-600', 'hover:bg-emerald-500');
+        btn.classList.remove('bg-blue-600');
+      }, 1800);
+    }
+
     function recalculatePatient() {
       const wt = parseFloat(document.getElementById('weightInput').value);
       const ht = parseFloat(document.getElementById('heightInput').value);
@@ -522,7 +1152,6 @@
       const autoBadge = document.getElementById('bmiAutoBadge');
       const unstable = document.getElementById('unstableCheck').checked;
 
-      // Auto-calculate BMI if weight and height are provided
       if (wt > 0 && ht > 0 && !manualBmi) {
         const heightMeters = heightUnit === 'cm' ? (ht / 100) : (ht * 0.0254);
         if (heightMeters > 0) {
@@ -537,7 +1166,6 @@
 
       const bmi = parseFloat(bmiField.value);
 
-      // Auto-route cohort
       if (!isNaN(bmi) || unstable) {
         const isObese = !isNaN(bmi) && bmi >= 30;
         if (unstable && isObese) selectCohort(2);
@@ -555,7 +1183,22 @@
       document.getElementById('bmiInput').value = '';
       document.getElementById('unstableCheck').checked = false;
       document.getElementById('bmiAutoBadge').classList.add('hidden');
+      document.getElementById('giveLdCheck').checked = true;
+      document.getElementById('initMaintDose').value = '';
+      document.getElementById('initMaintFreq').value = '12';
+      document.getElementById('labStageSelect').value = 'after_1st_maint';
+      document.getElementById('fuDoseInput').value = '';
+      document.getElementById('fuFreqInput').value = '12';
+      document.getElementById('aucValueInput').value = '';
+      document.getElementById('levelValueInput').value = '';
+      document.getElementById('nonTherDirection').value = 'below';
+      document.querySelectorAll('.sev-indication-chk').forEach(cb => {
+        cb.checked = false;
+      });
+      forcedSeverity = null;
       manualBmi = false;
+      setEncounterStage('new');
+      setLabStatus('therapeutic');
       selectCohort(0);
     }
 
@@ -564,7 +1207,8 @@
       const printWin = window.open('', '_blank', 'width=1200,height=850');
 
       if (!printWin) {
-        alert("Popup blocked by browser. Please allow popups to open the print preview.");
+        const callout = document.getElementById('iventActionCallout');
+        callout.textContent = "Popup blocked by browser — please allow popups to open the print preview window.";
         return;
       }
 
@@ -594,7 +1238,7 @@
     .matrix-table td {
       border: 1.5px solid #cbd5e1;
     }
-    .dimmed-cell {
+    .dimmed-cell, .step-dimmed-row {
       opacity: 1 !important;
       filter: none !important;
     }
@@ -623,6 +1267,9 @@
 </html>`);
       printWin.document.close();
     }
+
+    // Initialize default state on load
+    updateWorkflowAndIvent();
   </script>
 </body>
 </html>
